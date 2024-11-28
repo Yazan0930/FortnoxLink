@@ -1,6 +1,7 @@
 import axios from 'axios';
 import qs from 'qs';
 import dotenv from 'dotenv';
+import { response } from 'express';
 
 dotenv.config();
 
@@ -35,16 +36,22 @@ let tokenData = {
 };
 
 const getAuthCode = (req: AuthRequest, res: AuthResponse): void => {
-    const authUrl = `https://apps.fortnox.se/oauth-v1/auth?client_id=${clientId}&redirect_uri=http://localhost:3000/api/callback&scope=article&state=randomState&response_type=code`;
-    //
-    res.redirect(authUrl); // Redirect user to Fortnox authentication
-    
+    //const authUrl = `https://apps.fortnox.se/oauth-v1/auth?client_id=${clientId}&redirect_uri=http://localhost:3000/api/callback&scope=article%20order&state=randomState&response_type=code`;
+
+    const params = qs.stringify({
+        client_id: clientId,
+        redirect_uri: redirectUri,
+        scope: ['article', 'order', 'companyinformation'].join(' '),
+        state: 'randomState',
+        response_type: 'code'
+    });
+    const authUrl = `https://apps.fortnox.se/oauth-v1/auth?${params}`;
+
+    res.redirect(authUrl); // Redirect user to Fortnox authentication    
 };
 
 const getToken = async (req: AuthRequest, res: AuthResponse): Promise<void> => {
     const authCode = req.query.code; // Get the code from the query parameter
-    
-    // Print the received authorization code in the console
     console.log(`Received Authorization Code: ${authCode}`);
     
     try {
@@ -66,7 +73,7 @@ const getToken = async (req: AuthRequest, res: AuthResponse): Promise<void> => {
         );
 
         UpdateTokenData(tokenResponse.data);        
-        res.send('Token received successfully: ' +  tokenData);        
+        res.redirect('http://localhost:3000/api/orders');      // ändra till rätt sida
         console.log('Token received successfully:', tokenData);
 
     } catch (error) {
@@ -78,6 +85,7 @@ const getToken = async (req: AuthRequest, res: AuthResponse): Promise<void> => {
 const isTokenExpired = (): boolean => {
     return Number(tokenData.expiresAt) <= Date.now();
 };
+
 
 const UpdateTokenData = async (data: TokenData) => {
     // write the token data to the .env file
@@ -93,6 +101,12 @@ const UpdateTokenData = async (data: TokenData) => {
     };
 
     fs.writeFileSync(envPath, qs.stringify(newEnvConfig, { delimiter: '\n' }));
+
+    tokenData = {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        expiresAt: Date.now() + data.expires_in * 1000
+    };
 }
 
 const refreshToken = async () => {
@@ -137,16 +151,5 @@ const validateTokenMiddleware = async (req: any, res: any, next: any) => {
     next(); // Proceed to the next middleware or API route
 };
 
-const makeFortnoxRequest = async (endpoint: string) => {
-    await isTokenExpired(); // Ensure token is valid before the request
-    const response = await axios.get(`https://apps.fortnox.se/3/${endpoint}`, {
-        headers: {
-            Authorization: `Bearer ${tokenData.accessToken}`,
-            Accept: 'application/json'
-        },
-    });
-    return response.data;
-};
 
-
-export { getAuthCode, getToken, validateTokenMiddleware, makeFortnoxRequest };
+export { getAuthCode, getToken, validateTokenMiddleware };
