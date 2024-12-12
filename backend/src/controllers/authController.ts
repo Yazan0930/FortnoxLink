@@ -1,7 +1,6 @@
 import axios from 'axios';
 import qs from 'qs';
 import dotenv from 'dotenv';
-import { response } from 'express';
 
 dotenv.config();
 
@@ -36,7 +35,6 @@ let tokenData = {
 };
 
 const getAuthCode = (req: AuthRequest, res: AuthResponse): void => {
-    //const authUrl = `https://apps.fortnox.se/oauth-v1/auth?client_id=${clientId}&redirect_uri=http://localhost:3000/api/callback&scope=article%20order&state=randomState&response_type=code`;
 
     const params = qs.stringify({
         client_id: clientId,

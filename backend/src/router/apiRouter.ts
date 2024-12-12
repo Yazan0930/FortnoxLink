@@ -7,6 +7,7 @@ router.get('/auth', getAuthCode);  // Redirect to Fortnox for authentication
 router.get('/callback', getToken); // Callback route to handle token
 
 router.use(validateTokenMiddleware);
+
 router.get('/:endpoint', async (req, res) => {
     try {
         const data = await getFortnoxResource(req.params.endpoint);
