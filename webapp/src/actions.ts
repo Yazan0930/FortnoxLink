@@ -9,11 +9,22 @@ import { redirect } from "next/navigation";
 
 let db: Database<sqlite3.Database> | null = null;
 
+const getDatabase = async (): Promise<Database<sqlite3.Database>> => {
+    if (!db) {
+        db = await open({
+            filename: "./collection.db",
+            driver: sqlite3.Database,
+        });
+    }
+    return db;
+};
+
 export const getSession = async () => {
     const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
 
     if (!session.isLoggedIn) {
         session.isLoggedIn = defaultSession.isLoggedIn;
+        
     };
     
     return session;
@@ -27,27 +38,38 @@ export const login = async (formData:FormData) => {
         name: formData.get("name") as string ?? "",
         sysadmin: formData.get("sysadmin") === "true"
     };
-
-    // add expires in 30s   
-    session.expires = new Date(Date.now() + 30 * 1000);
-
     await session.save();
-    console.log("Session is created successfully: ", session);
 };
 
 export const logout = async () => {
-    const session = await getSession();
-    session.destroy();
+    cleanUp();
     redirect("/");
 };
 
 export const getToken = async() => {
-    const db = await open({
-        filename: "./collection.db",
-        driver: sqlite3.Database,
-    });
+    const db = await getDatabase();
 
     const token = await db.get("SELECT DISTINCT token FROM data");
     console.log("Token from getToken: ", token);
     return token;
+}
+
+const cleanUp = async () => {
+    console.log("Cleaning up...");
+    const session = await getSession();
+    if (!session.expires || session.expires < new Date() || !session.isLoggedIn) {
+        session.isLoggedIn = defaultSession.isLoggedIn;
+        session.destroy();
+    }
+
+    const db = await getDatabase();
+    if (db) {
+        await db.close();
+    }
+
+    const fs = require("fs");
+    if (fs.existsSync("./collection.db")) {
+        fs.unlinkSync("./collection.db");
+    }
+    console.log("Clean up completed.");
 }

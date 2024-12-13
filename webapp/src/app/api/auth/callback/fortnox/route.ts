@@ -28,11 +28,39 @@ export const GET = async (req: NextRequest) => {
 
     // Check if the database instance has been initialized
     if (!db) {
-        // If the database instance is not initialized, open the database connection
         db = await open({
         filename: "./collection.db", // Specify the database file path
         driver: sqlite3.Database, // Specify the database driver (sqlite3 in this case)
         });
+        interface RunResult {
+            lastID: number;
+            changes: number;
+        }
+
+        interface RunCallback {
+            (err: Error | null, result: RunResult): void;
+        }
+
+        db.run(
+            `CREATE TABLE IF NOT EXISTS data (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  email TEXT,
+                  name TEXT,
+                  sysadmin BOOLEAN,
+                  token TEXT,
+                  refresh_token TEXT,
+                  expires_in INTEGER
+              )`,
+            [],
+            (err: Error | null) => {
+                if (err) {
+                    console.error("Failed to create table:", err);
+                    return;
+                }
+                console.log("Table created data successfully.");
+            }
+        );
+
         // print all the rows in the data table
         const rows = await db.all(`SELECT name 
 FROM sqlite_master 

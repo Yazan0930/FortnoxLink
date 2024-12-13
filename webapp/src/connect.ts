@@ -29,18 +29,6 @@ db.run(
       return;
     }
     console.log("Table created data successfully.");
-
-    // print all the rows in the data table
-    db.all(`SELECT name 
-    FROM sqlite_master 
-    WHERE type = 'table';
-    `, [], (err, rows) => {
-      if (err) {
-        console.error("Failed to select rows:", err);
-        return;
-      }
-      console.log("Rows:", rows);
-    });
     //   Close the database connection
     db.close((err) => {
         if (err) {
