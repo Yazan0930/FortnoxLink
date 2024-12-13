@@ -5,17 +5,39 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import sqlite3 from "sqlite3";
 import { open, Database } from "sqlite";
-import { redirect } from "next/navigation";
 
-let db: Database<sqlite3.Database> | null = null;
+export const getDatabase = async (): Promise<Database<sqlite3.Database>> => {
+    const sqlite3 = require("sqlite3").verbose();
+    const db = new sqlite3.Database(
+        "collection.db",
+      sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
+      (err: Error) => {
+        if (err) {
+          return console.error(err.message);
+        }
+        console.log("Connected to the SQlite database.");
+      }
+    );
+    db.run(
+        `CREATE TABLE IF NOT EXISTS data (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              email TEXT,
+              name TEXT,
+              sysadmin BOOLEAN,
+              token TEXT,
+              refresh_token TEXT,
+              expires_in INTEGER
+          )`,
+        [],
+        (err: Error) => {
+          if (err) {
+            console.error("Failed to create table:", err);
+            return;
+          }
+          console.log("Table created data successfully.");
+        }
+    );
 
-const getDatabase = async (): Promise<Database<sqlite3.Database>> => {
-    if (!db) {
-        db = await open({
-            filename: "./collection.db",
-            driver: sqlite3.Database,
-        });
-    }
     return db;
 };
 
@@ -42,8 +64,11 @@ export const login = async (formData:FormData) => {
 };
 
 export const logout = async () => {
-    cleanUp();
-    redirect("/");
+    const session = await getSession();
+    session.isLoggedIn = defaultSession.isLoggedIn;
+    console.log("Form logout action: ", session);
+    await cleanUp();
+    console.log("Session after logout: ", session);
 };
 
 export const getToken = async() => {
@@ -58,18 +83,12 @@ const cleanUp = async () => {
     console.log("Cleaning up...");
     const session = await getSession();
     if (!session.expires || session.expires < new Date() || !session.isLoggedIn) {
-        session.isLoggedIn = defaultSession.isLoggedIn;
         session.destroy();
-    }
 
-    const db = await getDatabase();
-    if (db) {
-        await db.close();
-    }
-
-    const fs = require("fs");
-    if (fs.existsSync("./collection.db")) {
-        fs.unlinkSync("./collection.db");
+        const fs = await require("fs");
+        if (fs.existsSync("collection.db")) {
+            await fs.unlinkSync("collection.db");
+        }
     }
     console.log("Clean up completed.");
 }

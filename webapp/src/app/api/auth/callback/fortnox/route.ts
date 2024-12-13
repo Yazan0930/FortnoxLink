@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { login, getToken } from '@/actions';
+import { login, getDatabase } from '@/actions';
 import dotenv from 'dotenv';
-import sqlite3 from "sqlite3";
-import { open, Database } from "sqlite";
 import { redirect } from 'next/navigation';
-
-let db: Database<sqlite3.Database> | null = null;
 
 dotenv.config();
 
@@ -25,51 +21,7 @@ interface user {
 }
 
 export const GET = async (req: NextRequest) => {
-
-    // Check if the database instance has been initialized
-    if (!db) {
-        db = await open({
-        filename: "./collection.db", // Specify the database file path
-        driver: sqlite3.Database, // Specify the database driver (sqlite3 in this case)
-        });
-        interface RunResult {
-            lastID: number;
-            changes: number;
-        }
-
-        interface RunCallback {
-            (err: Error | null, result: RunResult): void;
-        }
-
-        db.run(
-            `CREATE TABLE IF NOT EXISTS data (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  email TEXT,
-                  name TEXT,
-                  sysadmin BOOLEAN,
-                  token TEXT,
-                  refresh_token TEXT,
-                  expires_in INTEGER
-              )`,
-            [],
-            (err: Error | null) => {
-                if (err) {
-                    console.error("Failed to create table:", err);
-                    return;
-                }
-                console.log("Table created data successfully.");
-            }
-        );
-
-        // print all the rows in the data table
-        const rows = await db.all(`SELECT name 
-FROM sqlite_master 
-WHERE type = 'table';
-`);
-        console.log(rows);
-    }
-
-
+    const db = await getDatabase();
     const { searchParams } = new URL(req.url);
     const code = searchParams.get('code');
 
@@ -120,16 +72,11 @@ WHERE type = 'table';
   
     
     // save the data in the database
-    try {
-        await db.run(
-            `INSERT INTO data (email, name, sysadmin, token, refresh_token, expires_in) VALUES (?, ?, ?, ?, ?, ?)`,
-            [user.Me.Email, user.Me.Name, user.Me.SysAdmin, data.access_token, data.refresh_token, data.expires_in]
-        );
-    }
-    catch (error) {
-        return NextResponse.json({ error: 'DB Failed to save user information' }, { status: 400 });
-    }
-
+    await db.run(
+        `INSERT INTO data (email, name, sysadmin, token, refresh_token, expires_in) VALUES (?, ?, ?, ?, ?, ?)`,
+        [user.Me.Email, user.Me.Name, user.Me.SysAdmin, data.access_token, data.refresh_token, data.expires_in]
+    );
+    
     // login the user
     await login(formData);
     return redirect('/'); 

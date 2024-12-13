@@ -1,18 +1,7 @@
-import { getSession } from '@/actions';
 import Link from 'next/link';
 
-const Login = async () => {
-    const session = await getSession();
-    // check if the user is logged in
-    if (session && session.user) {
-        return (
-            <div>
-                <h1>Welcome {session.user.name}</h1>
-                <p>Email: {session.user.email}</p>
-                <p>Sysadmin: {session.user.sysadmin}</p>
-            </div>
-        );
-    }
+const Login = () => {
+
     // if the user is not logged in redirect to the login page /api/auth/signin/fortnox
     return (
         <div>
