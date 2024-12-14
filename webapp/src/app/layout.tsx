@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+
+import { getSession } from '@/actions';
 import Navbar from "./components/navbar";
+import LogoutForm from './components/logout';
+import Login from './components/login';
+
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -13,12 +18,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getSession();
 
   return (
     <html lang="en">
       <body>
         <div>
+       
           <Navbar />
+          <div>
+            {session?.isLoggedIn ? <LogoutForm /> : <Login />}
+          </div>
           {children}
         </div>
       </body>

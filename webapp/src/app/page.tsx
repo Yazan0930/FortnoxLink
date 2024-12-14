@@ -3,7 +3,6 @@
 // import Link from "next/link";
 import { getSession } from "@/actions";
 
-
 export default async function Home() {
   const session = await getSession();
   if (session && session.user) {
