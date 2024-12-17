@@ -43,14 +43,15 @@ export const getDatabase = async (): Promise<Database<sqlite3.Database>> => {
 
 export const getSession = async () => {
     const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
-
-    if (!session.isLoggedIn) {
-        session.isLoggedIn = defaultSession.isLoggedIn;
-        
-    };
-    
-    return session;
+     
+    return session
 };
+
+
+export const getPlainSession = async () => {
+    const session = await getSession();
+    return JSON.stringify(session);
+}
 
 export const login = async (formData:FormData) => {
     const session = await getSession();

@@ -1,20 +1,17 @@
 import { Router } from 'express';
-import { getAuthCode, getToken, validateTokenMiddleware } from '../controllers/authController';
+import { getTokenClient } from '../controllers/authController';
+import bodyParser from 'body-parser';
+import cors from 'cors';
 import { getFortnoxResource } from '../controllers/fortnoxService';
 
 const router = Router();
-router.get('/auth', getAuthCode);  // Redirect to Fortnox for authentication
-router.get('/callback', getToken); // Callback route to handle token
 
-router.use(validateTokenMiddleware);
+router.use(cors({ origin: 'http://localhost:5173' })); 
+router.use(bodyParser.json());
 
-router.get('/:endpoint', async (req, res) => {
-    try {
-        const data = await getFortnoxResource(req.params.endpoint);
-        res.json(data);
-    } catch (err) {
-        res.status(500).send({ error: err });
-    }
-});
+router.use(bodyParser.urlencoded({ extended: true }));
+router.post('/auth', getTokenClient);
 
+
+router.post('/:endpoint', getFortnoxResource);
 export default router;

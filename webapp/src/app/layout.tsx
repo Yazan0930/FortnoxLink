@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import "./globals.css";
+import { AppProvider } from '@toolpad/core/nextjs';
 
 import { getSession } from '@/actions';
 import Navbar from "./components/navbar";
 import LogoutForm from './components/logout';
 import Login from './components/login';
+import Header from "./components/header";
 
 
 export const metadata: Metadata = {
@@ -23,6 +24,17 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Header session={session}/>
+        {session?.isLoggedIn ? <LogoutForm /> : <Login />}
+        <Navbar />
+        <AppProvider>{children}</AppProvider>
+      </body>
+    </html>
+  
+  /*
+  return (
+    <html lang="en">
+      <body>
         <div>
        
           <Navbar />
@@ -32,6 +44,6 @@ export default async function RootLayout({
           {children}
         </div>
       </body>
-    </html>
+    </html>*/
   );
 }

@@ -11,7 +11,12 @@ export interface SessionData {
 }
 
 export const defaultSession: SessionData = {
-  isLoggedIn: false
+    isLoggedIn: false,
+    user: {
+        name: "s",
+        email: "s",
+        sysadmin: false
+    }
 };
 
 export const sessionOptions: SessionOptions = {
