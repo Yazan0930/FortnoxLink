@@ -66,6 +66,7 @@ const getTokenClient = async (req: AuthRequest, res: AuthResponse): Promise<void
                 }
             }
         );
+        console.log('Response:', response.data);
         res.json(response.data);
     } catch (error) {
         if (axios.isAxiosError(error)) {
