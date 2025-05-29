@@ -1,7 +1,6 @@
 import { useEffect } from "react";
-import { Button, Input } from "@nextui-org/react";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { loginProps } from "../../../interfaces/loginForm.interface";
+import { Button } from "@nextui-org/react";
+import { useForm} from "react-hook-form";
 import loginImg from "../../../assets/pictures/login/wallpapersden.com_trees-mountains-fog_6000x4000.jpg";
 import { HoverBorderGradient } from "../../ui/HoverBorderGrdaient";
 import { useLoginMutation } from "../../../hooks/api/useAuthApi";
@@ -11,24 +10,9 @@ import { extractAuthCode, getCode } from "../../../services/api/authApi";
 
 export default function LoginForm() {
   const { t } = useTranslation()
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<loginProps>({
-    defaultValues: {
-      code: "",
-    }
-  });
+  const reset = useForm().reset;
 
   const { mutate, isPending } = useLoginMutation(reset);
-
-  const submitFormHandler: SubmitHandler<loginProps> = (data) => {
-    mutate(data);
-  };
-
-  
 
   useEffect(() => {
     // Automatically handle the authorization code if redirected back

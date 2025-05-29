@@ -31,7 +31,7 @@ export const getFortnoxResource = async (req: AuthRequest, res: AuthResponse): P
     try {
         const { access_token } = req.body;
         const response = await axios.get(
-            `https://api.fortnox.se/3/me`,
+            `https://api.fortnox.se/3/${req.params.endpoint}`,
             {
                 headers: {
                     'Accept': 'application/json',     

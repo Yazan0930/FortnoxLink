@@ -11,7 +11,7 @@ export default function MainUserCard() {
       <div>
         <div className="flex items-center gap-2">
           <p className="text-primaryGray text-xs font-poppinsLight">
-            @williamB1111
+            @williamB11112
           </p>
           <Chip className="bg-primaryGreen text-black font-poppinsRegular text-xs">
             {t("pro")}

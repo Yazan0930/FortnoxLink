@@ -56,3 +56,5 @@ export const getCode = () => {
   const targetUrl = `https://apps.fortnox.se/oauth-v1/auth?${params.toString()}`;
   window.location.href = targetUrl;
 };
+
+// export const getUserData = async (token: string) => {
